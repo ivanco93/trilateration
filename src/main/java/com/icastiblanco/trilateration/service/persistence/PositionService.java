@@ -12,7 +12,7 @@ import com.icastiblanco.trilateration.service.IPositionService;
 public class PositionService implements IPositionService {
 
 	@Override
-	public Position getShipCoordinates(List<Satellite> satellites) {
+	public Position getShipCoordinates(List<Satellite> satellites) throws Exception {
 		Position position = new Position();
 		int satelliteInOrigin = getSatelliteInOriginIndex(satellites);
 		int satelliteInParallelWithOriginIndex = getSatelliteInParallelWithOriginIndex(satellites, satelliteInOrigin);
@@ -20,9 +20,6 @@ public class PositionService implements IPositionService {
 		Satellite satellite_2 = satellites.get(satelliteInParallelWithOriginIndex);
 		Satellite satellite_3 = satellites.get(getLastSatelliteIndex(satellites, satelliteInOrigin, satelliteInParallelWithOriginIndex));
 		
-		System.out.println("Satellite 1 is=>" + satellite_1.toString());
-		System.out.println("Satellite 2 is=>" + satellite_2.toString());
-		System.out.println("Satellite 3 is=>" + satellite_3.toString());
 		double dist1_2 = satellite_1.getDistance() * satellite_1.getDistance();
         double dist2_2 = satellite_2.getDistance() * satellite_2.getDistance();
         double dist3_2 = satellite_3.getDistance() * satellite_3.getDistance();
@@ -34,13 +31,19 @@ public class PositionService implements IPositionService {
         double i_2 = i * i;
         double j_2 = j * j;
         
-        System.out.println("dist1_2=> "+ dist1_2 + ", " + "dist2_2=> "+ dist2_2 + ", " +"dist3_2=> "+ dist3_2 + ", ");
-        System.out.println("d =>" + d + ", " + "i =>" + i + ", " + "j =>" + j + ", ");
-        position.setX(((dist1_2)-(dist2_2)+d_2)/(2*d));
-        double yResta = (i/j)*position.getX();
-        double yDivision = 2*j;
-        position.setY(((dist1_2 - dist3_2 + i_2 + j_2)/yDivision) - yResta);
-        
+        //Check if there is circumference interception
+        if(interceptionExists(dist1_2, dist2_2, d_2)) {
+	        position.setX(((dist1_2)-(dist2_2)+d_2)/(2*d));
+	        double yResta = (i/j)*position.getX();
+	        double yDivision = 2*j;
+	        position.setY(((dist1_2 - dist3_2 + i_2 + j_2)/yDivision) - yResta);
+	        
+	        if(!isValidSolution(position, dist1_2)) {
+	        	throw new Exception("There's no valid solution");
+	        }
+        }else {
+        	throw new Exception("There's no interception among the satellites radio");
+        }
 		return position;
 	}
 
@@ -57,7 +60,7 @@ public class PositionService implements IPositionService {
 	}
 
 	@Override
-	public int getSatelliteInParallelWithOriginIndex(List<Satellite> satellites, int satelliteInOriginIndex) {
+	public int getSatelliteInParallelWithOriginIndex(List<Satellite> satellites, int satelliteInOriginIndex) throws Exception {
 		int i = 0;
 		for(Satellite satellite: satellites) {
 			if(satellite.getY()==satellites.get(satelliteInOriginIndex).getY() && i != satelliteInOriginIndex) {
@@ -65,12 +68,12 @@ public class PositionService implements IPositionService {
 			}
 			i++;
 		}
-		return -1;
+		throw new Exception("There's no satellite in parallel with satellite in origin [0,0]");
 	}
 
 	@Override
 	public int getLastSatelliteIndex(List<Satellite> satellites, int satelliteInOriginIndex,
-			int parallelSatelliteIndex) {
+			int parallelSatelliteIndex) throws Exception {
 		int i = 0;
 		for(Satellite satellite: satellites) {
 			if(i != satelliteInOriginIndex && i != parallelSatelliteIndex) {
@@ -78,7 +81,24 @@ public class PositionService implements IPositionService {
 			}
 			i++;
 		}
-		return -1;
+		throw new Exception("Wrong atellites quantity");
+	}
+
+	@Override
+	public boolean interceptionExists(double r1_sqr, double r2_sqr, double d_sqr) {
+		double squareNumerator = (r1_sqr-r2_sqr+d_sqr) * (r1_sqr-r2_sqr+d_sqr);
+		double d_sqrByFour = 4*d_sqr;
+		double squareRootY = r1_sqr - (squareNumerator/d_sqrByFour);
+		
+		return squareRootY >=0;
+	}
+
+	@Override
+	public boolean isValidSolution(Position position, double r1_sqr) {
+		double x_sqr = position.getX() * position.getX();
+		double y_sqr = position.getY() * position.getY();
+		
+		return (r1_sqr-x_sqr-y_sqr) >=0;
 	}
 
 }
