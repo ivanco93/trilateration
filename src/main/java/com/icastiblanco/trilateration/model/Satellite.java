@@ -1,5 +1,7 @@
 package com.icastiblanco.trilateration.model;
 
+import java.util.Arrays;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -19,39 +21,25 @@ public class Satellite {
 	private double distance;
 	private double originalX;
 	private double originalY;
+	private String[] message;
 	
 	//for deserialisation
 	public Satellite() {
 		this.originalX = this.x;
 		this.originalY = y;
 	}
-	
-	public Satellite(long id, String name, double x, double y, double distance, double originalX, double originalY) {
+
+	public Satellite(long id, String name, double x, double y, double distance, double originalX, double originalY,
+			String[] message) {
+		super();
 		this.id = id;
 		this.name = name;
 		this.x = x;
 		this.y = y;
 		this.distance = distance;
-		this.originalX = x;
-		this.originalY = y;
-	}
-
-	public Satellite(Long id, String name, double x, double y, double distance) {
-		this.id= id;
-		this.name = name;
-		this.x = x;
-		this.y = y;
-		this.originalX = x;
-		this.originalY = y;
-		this.distance = distance;
-	}
-	
-	public Satellite(String name, double x, double y) {
-		this.name = name;
-		this.x = x;
-		this.y = y;
-		this.originalX = x;
-		this.originalY = y;
+		this.originalX = originalX;
+		this.originalY = originalY;
+		this.message = message;
 	}
 	
 	public long getId() {
@@ -96,9 +84,16 @@ public class Satellite {
 	public void setOriginalY(double originalY) {
 		this.originalY = originalY;
 	}
+	public String[] getMessage() {
+		return message;
+	}
+	public void setMessage(String[] message) {
+		this.message = message;
+	}
 	@Override
 	public String toString() {
 		return "Satellite [id=" + id + ", name=" + name + ", x=" + x + ", y=" + y + ", distance=" + distance
-				+ ", originalX=" + originalX + ", originalY=" + originalY + "]";
-	}	
+				+ ", originalX=" + originalX + ", originalY=" + originalY + ", message=" + Arrays.toString(message)
+				+ "]";
+	}
 }

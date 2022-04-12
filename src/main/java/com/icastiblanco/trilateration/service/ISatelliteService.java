@@ -12,4 +12,5 @@ public interface ISatelliteService{
 	void update(Satellite satellite);
 	void deleteAll();
 	long count();
+	void translateToOrigin(List<Satellite> satellites) throws Exception;
 }

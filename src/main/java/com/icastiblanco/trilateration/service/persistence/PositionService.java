@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.icastiblanco.trilateration.common.ResponseMessages;
 import com.icastiblanco.trilateration.model.Position;
 import com.icastiblanco.trilateration.model.Satellite;
 import com.icastiblanco.trilateration.service.IPositionService;
@@ -39,14 +40,30 @@ public class PositionService implements IPositionService {
 	        position.setY(((dist1_2 - dist3_2 + i_2 + j_2)/yDivision) - yResta);
 	        
 	        if(!isValidSolution(position, dist1_2)) {
-	        	throw new Exception("There's no valid solution");
+	        	throw new Exception(ResponseMessages.NOT_VALID_SOLUTION);
 	        }
         }else {
-        	throw new Exception("There's no interception among the satellites radio");
+        	throw new Exception(ResponseMessages.NOT_INTERCEPTION);
         }
+        
+        if(satellite_1.getX()!=satellite_1.getOriginalX()) {
+        	satellite_1.setX(satellite_1.getOriginalX());
+        	satellite_1.setY(satellite_1.getOriginalY());
+        	
+        	satellite_2.setX(satellite_2.getOriginalX());
+        	satellite_2.setY(satellite_2.getOriginalY());
+        	
+        	satellite_3.setX(satellite_3.getOriginalX());
+        	satellite_3.setY(satellite_3.getOriginalY());
+        	
+        	position.setX(position.getX()+satellite_1.getOriginalX());
+        	position.setY(position.getY()+satellite_1.getOriginalY());
+        }
+        
 		return position;
 	}
-
+	
+	
 	@Override
 	public int getSatelliteInOriginIndex(List<Satellite> satellites) {
 		int i = 0;
@@ -68,7 +85,7 @@ public class PositionService implements IPositionService {
 			}
 			i++;
 		}
-		throw new Exception("There's no satellite in parallel with satellite in origin [0,0]");
+		throw new Exception(ResponseMessages.NOT_PARALLEL_WITH_ORIGIN);
 	}
 
 	@Override
@@ -81,7 +98,7 @@ public class PositionService implements IPositionService {
 			}
 			i++;
 		}
-		throw new Exception("Wrong atellites quantity");
+		throw new Exception(ResponseMessages.WRONG_SATELLITES_QTY);
 	}
 
 	@Override
